@@ -51,12 +51,12 @@ func (c *PostController) PostShow(w http.ResponseWriter, r *http.Request) {
 func (c *PostController) PostCreate(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(10 << 20) //Limit to 10 MB file size
 	f, fh, err := r.FormFile("image")
-	log.Printf("Saving a new file: %s with size %+v and type %+v", fh.Filename, fh.Size, fh.Header)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer f.Close()
+	log.Printf("Saving a new file: %s with size %+v and type %+v", fh.Filename, fh.Size, fh.Header)
 	is_allowed_type := false
 	for i := range allowed_file_types {
 		if fh.Header.Get("Content-Type") == allowed_file_types[i] {
