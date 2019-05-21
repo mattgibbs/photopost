@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>Random Photo</title>
+  <style>
+    body {
+      background-color: black;
+      padding: 0;
+      margin: 0;
+    }
+    div#app {
+      position: relative;
+      text-align: center;
+      font-family: sans-serif;
+      padding: 0;
+      margin: 0;
+      text-shadow: 2px 2px 4px #000000;
+    }
+    
+    div.title {
+      position: absolute;
+      top: 8px;
+      left: 16px;
+      color: white;
+      font-size: 2em;
+    }
+    
+    div.author {
+      position: absolute;
+      top: 8px;
+      right: 16px;
+      color: white;
+      font-size: 2em;
+    }
+    
+    div.text {
+      position: absolute;
+      bottom: 8px;
+      right: 16px;
+      color: white;
+      font-size: 1.3em;
+    }
+    
+    img.photo {
+      padding: 0;
+      margin: 0;
+      width: 100%;
+    }
+  </style>
+  
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <div id="app">
+      <div id="container" v-if="post">
+        <img class="photo" v-bind:src="post.imageFile | absoluteImgURL">
+        <div class="title">{{post.title}}</div>
+        <div class="author">{{post.author}}</div>
+        <div class="text">{{post.text}}</div>
+      </div>
+    </div>
+    <script>
+        function makeJSONRequest(url, method) {
+            var request = new XMLHttpRequest();
+            return new Promise(function(resolve, reject) {
+                request.onreadystatechange=function() {
+                    if (request.readyState !== 4) return;
+                    if (request.status >= 200 && request.status < 300) {
+                        resolve(request);
+                    } else {
+                        reject({
+                            status: request.status,
+                            statusText: request.statusText
+                        });
+                    }
+                };
+                request.open(method || 'GET', url, true);
+                request.responseType = 'json';
+                request.send();
+            });
+        }
+        
+        var app = new Vue({
+            el: '#app',
+            data() {
+                return {
+                  post: null
+                }
+            },
+            filters: {
+                absoluteImgURL(rel_url) {
+                    return "../" + rel_url;
+                }
+            },
+            mounted(){
+              this.getPost();
+              setInterval(() => this.getPost(), 10000);
+            },
+            methods: {
+              getPost() {
+                makeJSONRequest('http://localhost:8888/posts/random')
+                    .then(post => {
+                        this.post = post.response;
+                    })
+                    .catch(error => {
+                        this.post = null
+                        console.log("Error", error);
+                    });
+              }
+            }
+        });
+        
+        
+    </script>
+</body>
+</html>
+
+
