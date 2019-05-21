@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"time"
 )
 
 var allowed_file_types = [...]string{"image/jpeg", "image/gif", "image/png"}
@@ -25,6 +26,50 @@ func NewPostController(ds model.Datastore) *PostController {
 	c := new(PostController)
 	c.datastore = ds
 	return c
+}
+
+func (c *PostController) PostIndex(w http.ResponseWriter, r *http.Request) {
+	var filters []interface{}
+	start_time := r.FormValue("start_time")
+	end_time := r.FormValue("end_time")
+	if start_time != "" || end_time != "" {
+		etf := model.PostTimeFilter{}
+		var err error
+		shortForm := "2006-Jan-02"
+		if start_time != "" {
+			etf.Newer_than, err = time.Parse(shortForm, start_time)
+			if err != nil {
+				http.Error(w, "start_time must be in 2006-Jan-02 format.", http.StatusBadRequest)
+				return
+			}
+		}
+		if end_time != "" {
+			etf.Older_than, err = time.Parse(shortForm, end_time)
+			if err != nil {
+				http.Error(w, "end_time must be in 2006-Jan-02 format.", http.StatusBadRequest)
+				return
+			}
+		}
+		filters = append(filters, etf)
+	}
+
+	if title_contains := r.FormValue("title_contains"); title_contains != "" {
+		titleFilter := model.TitleFilter{Contains: title_contains}
+		filters = append(filters, titleFilter)
+	}
+
+	posts, err := c.datastore.FindPostsWithFilters(filters)
+	if err != nil {
+		log.Fatalf("Error while fetching entries: %s", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(posts); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		panic(err)
+	}
 }
 
 func (c *PostController) PostShow(w http.ResponseWriter, r *http.Request) {
