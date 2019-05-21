@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"mime"
 	"net/http"
 	"path/filepath"
@@ -25,6 +26,7 @@ type PostController struct {
 func NewPostController(ds model.Datastore) *PostController {
 	c := new(PostController)
 	c.datastore = ds
+	rand.Seed(time.Now().Unix())
 	return c
 }
 
@@ -79,7 +81,22 @@ func (c *PostController) PostShow(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	post, err := c.datastore.FindPost(postid)
+	c.showPostWithID(w, r, postid)
+}
+
+func (c *PostController) PostRandom(w http.ResponseWriter, r *http.Request) {
+	//Get the list of all ids
+	ids, err := c.datastore.PostIDs()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		panic(err)
+	}
+	id := int(ids[rand.Intn(len(ids))])
+	c.showPostWithID(w, r, id)
+}
+
+func (c *PostController) showPostWithID(w http.ResponseWriter, r *http.Request, id int) {
+	post, err := c.datastore.FindPost(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return

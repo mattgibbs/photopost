@@ -10,6 +10,7 @@ type Datastore interface {
 	SavePost(post *Post) (int64, error)
 	UpdatePost(post *Post) error
 	DeletePost(post *Post) error
+	PostIDs() ([]int64, error)
 	Close()
 }
 

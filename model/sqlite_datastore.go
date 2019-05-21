@@ -33,6 +33,7 @@ type ds struct {
 	findall_post_stmt *sql.Stmt
 	update_post_stmt  *sql.Stmt
 	delete_post_stmt  *sql.Stmt
+	post_ids_stmt     *sql.Stmt
 }
 
 var save_post_sql = "INSERT INTO posts(title, text, image_file, author, post_time, creation_time) VALUES (?, ?, ?, ?, ?, ?)"
@@ -41,6 +42,7 @@ var find_post_sql = findall_post_sql + " WHERE id = ?"
 var findall_post_sql_ordered = findall_post_sql + " ORDER BY post_time DESC"
 var delete_post_sql = "DELETE FROM posts WHERE id = ?"
 var update_post_sql = "UPDATE posts SET title = ?, text = ?, image_file = ?, author = ?, post_time = ? WHERE id = ?"
+var post_ids_sql = `SELECT id FROM posts`
 
 func NewSQLiteDatastore(addr string) *ds {
 	d := initSQLiteDB(addr)
@@ -65,6 +67,10 @@ func NewSQLiteDatastore(addr string) *ds {
 	if err != nil {
 		log.Fatalf("Error while preparing post delete statement: %s", err)
 	}
+	post_ids_stmt, err := d.Prepare(post_ids_sql)
+	if err != nil {
+		log.Fatalf("Error while preparing post ids statement: %s", err)
+	}
 	return &ds{
 		db:                d,
 		save_post_stmt:    save_post_stmt,
@@ -72,6 +78,7 @@ func NewSQLiteDatastore(addr string) *ds {
 		findall_post_stmt: findall_post_stmt,
 		update_post_stmt:  update_post_stmt,
 		delete_post_stmt:  delete_post_stmt,
+		post_ids_stmt:     post_ids_stmt,
 	}
 }
 
@@ -279,6 +286,30 @@ func (d *ds) DeletePost(post *Post) error {
 	}
 	_, err := d.delete_post_stmt.Exec(post.Id)
 	return err
+}
+
+func (d *ds) PostIDs() ([]int64, error) {
+	rows, err := d.post_ids_stmt.Query()
+	defer rows.Close()
+	if err != nil {
+		log.Printf("Error while fetching all IDs: %s", err)
+		return nil, err
+	}
+	var ids []int64
+	for rows.Next() {
+		rowErr := rows.Err()
+		if rowErr != nil {
+			log.Printf("Row Errow during PostIDs: %s", rowErr)
+			return nil, rowErr
+		}
+		var id int64
+		scanErr := rows.Scan(&id)
+		if scanErr != nil {
+			return nil, scanErr
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
 }
 
 func (d *ds) Close() {

@@ -11,6 +11,9 @@ func NewRouter() *mux.Router {
 			"Index", "GET", "/", Index,
 		},
 		Route{
+			"PostRandom", "GET", "/posts/random", postController.PostRandom,
+		},
+		Route{
 			"PostShow", "GET", "/posts/{postid}", postController.PostShow,
 		},
 		Route{
