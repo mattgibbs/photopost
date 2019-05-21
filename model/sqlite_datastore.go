@@ -38,6 +38,7 @@ type ds struct {
 var save_post_sql = "INSERT INTO posts(title, text, image_file, author, post_time, creation_time) VALUES (?, ?, ?, ?, ?, ?)"
 var findall_post_sql = `SELECT id, title, text, image_file, author, post_time, creation_time FROM posts`
 var find_post_sql = findall_post_sql + " WHERE id = ?"
+var findall_post_sql_ordered = findall_post_sql + " ORDER BY post_time DESC"
 var delete_post_sql = "DELETE FROM posts WHERE id = ?"
 var update_post_sql = "UPDATE posts SET title = ?, text = ?, image_file = ?, author = ?, post_time = ? WHERE id = ?"
 
@@ -52,7 +53,7 @@ func NewSQLiteDatastore(addr string) *ds {
 	if err != nil {
 		log.Fatalf("Error while preparing post find statement: %s", err)
 	}
-	findall_post_stmt, err := d.Prepare(findall_post_sql)
+	findall_post_stmt, err := d.Prepare(findall_post_sql_ordered)
 	if err != nil {
 		log.Fatalf("Error while preparing post findAll statement: %s", err)
 	}
@@ -152,6 +153,7 @@ func (d *ds) FindPostsWithFilters(filters []interface{}) ([]*Post, error) {
 		}
 	}
 	query = query + strings.Join(clauses, " AND ")
+	query = query + " ORDER BY post_time DESC"
 	rows, queryErr := d.db.Query(query, args...)
 	defer rows.Close()
 	if queryErr != nil {
