@@ -16,6 +16,9 @@ func NewRouter() *mux.Router {
 		Route{
 			"PostCreate", "POST", "/posts", postController.PostCreate,
 		},
+		Route{
+			"PostIndex", "GET", "/posts", postController.PostIndex,
+		},
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
