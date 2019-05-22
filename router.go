@@ -5,6 +5,11 @@ import (
 	"net/http"
 )
 
+const (
+	VIEW_DIR   = "/view/"
+	UPLOAD_DIR = "/uploads/"
+)
+
 func NewRouter() *mux.Router {
 	var routes = Routes{
 		Route{
@@ -25,6 +30,9 @@ func NewRouter() *mux.Router {
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
+
+	router.PathPrefix(VIEW_DIR).Handler(http.StripPrefix(VIEW_DIR, http.FileServer(http.Dir("."+VIEW_DIR))))
+	router.PathPrefix(UPLOAD_DIR).Handler(http.StripPrefix(UPLOAD_DIR, http.FileServer(http.Dir("."+UPLOAD_DIR))))
 	for _, route := range routes {
 		var handler http.Handler
 		handler = route.HandlerFunc
