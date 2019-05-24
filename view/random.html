@@ -61,7 +61,7 @@
         <img class="photo" v-bind:src="post.imageFile | absoluteImgURL">
         <div class="title">{{post.title}}</div>
         <div class="author" v-if="post.author && post.author != 'null'">{{post.author}}</div>
-        <div class="text">{{post.text}}</div>
+        <div class="text" v-if="post.text">{{post.text}}</div>
       </div>
     </div>
     <script>
