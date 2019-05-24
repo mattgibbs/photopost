@@ -29,9 +29,20 @@
       ol.posts li img.photo {
           margin: 0.5em;
       }
-      ol.posts li div.header span.title {
+      ol.posts li div.header a.title {
+          color: rgb(100, 100, 100);
           float: left;
+          text-decoration: none;
       }
+      
+      ol.posts li div.header a:hover {
+          text-decoration: underline;
+      }
+      
+      ol.posts li div.text {
+        font-size: 0.8em;
+      }
+      
       ol.posts li div.header span.author {
           float: right;
       }
@@ -39,16 +50,16 @@
   
 </head>
 <body>
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="vue.js"></script>
     <div id="app">
         <ol class="posts">
             <li class="post" v-for="post in posts">
                 <div class="post">
                     <div class="header">
-                        <span class="title">{{ post.title }}</span>
+                        <a class="title" v-bind:href="'..posts/' + post.id">{{ post.title }}</a>
                         <span class="author">{{ post.author }}</span>
                     </div>
-                    <img class="photo" :src="post.imageFile | absoluteImgURL" />
+                    <img class="photo" v-bind:src="post.imageFile | absoluteImgURL" />
                     <div class="text">{{ post.text }}</div>
                 </div>
             </li>
@@ -74,6 +85,7 @@
                 request.send();
             });
         }
+        
         var app = new Vue({
             el: '#app',
             data() {
@@ -89,7 +101,7 @@
                 }
             },
             mounted(){
-                makeJSONRequest('http://localhost:8888/posts')
+                makeJSONRequest('../posts')
                     .then(function(posts) {
                         console.log("Success!", posts.response);
                         this.posts = posts.response;
