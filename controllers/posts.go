@@ -15,6 +15,7 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/http"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -310,4 +311,36 @@ func (c *PostController) PostDelete(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (c *PostController) PostRotate(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	postid, err := strconv.Atoi(vars["postid"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	direction, err := strconv.Atoi(r.FormValue("direction"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	post, err := c.datastore.FindPost(postid)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+	var directionArg string
+	if direction >= 0 {
+		directionArg = "90"
+	} else {
+		directionArg = "-90"
+	}
+	cmd := exec.Command("mogrify", "-rotate", directionArg, post.ImageFile)
+	err = cmd.Run()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

@@ -25,6 +25,9 @@ func NewRouter() *mux.Router {
 			"PostUpdate", "POST", "/posts/{postid}", postController.PostUpdate,
 		},
 		Route{
+			"PostRotate", "POST", "/posts/{postid}/rotate", postController.PostRotate,
+		},
+		Route{
 			"PostDelete", "DELETE", "/posts/{postid}", postController.PostDelete,
 		},
 		Route{
