@@ -50,12 +50,12 @@
               <h1>Upload new photos</h1>
               <label for="name">Who took these photos?:</label><input type="text" v-model="nameForUpload" id="name">
               <div class="dropbox">
-                  <input type="file" multiple :name="uploadFieldName" :disabled="isSaving" @change="filesChange($event.target.name, $event.target.files, nameForUpload); fileCount = $event.target.files.length" accept="image/*" class="input-file">
+                  <input type="file" multiple :name="uploadFieldName" :disabled="isSaving" @change="filesChange($event.target.name, $event.target.files, nameForUpload);" accept="image/*" class="input-file">
                   <p v-if="isInitial">
                       Drag photo(s) here, or click to browse for photos
                   </p>
                   <p v-if="isSaving">
-                      Uploading {{ fileCount }} photos...
+                      Uploading... {{ uploadedFiles.length }}/{{ fileCount }} photos complete.
                   </p>
               </div>
           </form>
@@ -81,12 +81,12 @@
               request.onreadystatechange=function() {
                   if (request.readyState !== 4) return;
                   if (request.status >= 200 && request.status < 300) {
-                      resolve(request);
+                    resolve(request);
                   } else {
-                      reject({
-                          status: request.status,
-                          statusText: request.statusText
-                      });
+                    reject({
+                      status: request.status,
+                      statusText: request.statusText
+                    });
                   }
               };
               request.open('POST', url, true);
@@ -97,12 +97,13 @@
           el: '#app',
           data() {
               return {
-                  uploadedFiles: [],
-                  uploadError: null,
-                  currentStatus: null,
-                  uploadFieldName: 'photos',
-                  fileCount: 0,
-                  nameForUpload: null,
+                uploadedFiles: [],
+                uploadError: null,
+                currentStatus: null,
+                uploadFieldName: 'photos',
+                fileCount: 0,
+                uploadedCount: 0,
+                nameForUpload: null,
               }
           },
           computed: {
@@ -127,13 +128,15 @@
               },
               save(forms) {
                   this.currentStatus = STATUS_SAVING;
-                  console.log(forms);
-                  forms.forEach(form => {
-                    console.log("Making request for form: " + form);
+                  this.fileCount = forms.length;
+                  this.uploadedCount = 0;
+                  while (form = forms.pop()) {
+                    //console.log("Making request for form: " + form);
                     makeFormRequest("../posts", form)
                       .then(resp => {
                         console.log("Success!", resp.response);
                         this.uploadedFiles = this.uploadedFiles.concat(resp.response);
+                        this.uploadedCount += 1;
                         this.currentStatus = STATUS_SUCCESS;
                       })
                       .catch(error => {
@@ -141,7 +144,7 @@
                         this.uploadError = error.response;
                         this.currentStatus = STATUS_FAILED;
                       });
-                  });
+                  }
               },
               filesChange(fieldName, fileList, nameForUpload) {
                 if (!fileList.length) return;
