@@ -43,7 +43,7 @@
   
 </head>
 <body>
-  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="vue.js"></script>
   <div id="app">
       <div class="container">
           <form enctype="multipart/form-data" novalidate v-if="isInitial || isSaving">
@@ -130,7 +130,7 @@
                   console.log(forms);
                   forms.forEach(form => {
                     console.log("Making request for form: " + form);
-                    makeFormRequest("http://localhost:8888/posts", form)
+                    makeFormRequest("../posts", form)
                       .then(resp => {
                         console.log("Success!", resp.response);
                         this.uploadedFiles = this.uploadedFiles.concat(resp.response);
