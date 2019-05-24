@@ -276,7 +276,7 @@ func (d *ds) UpdatePost(post *Post) error {
 	if post.Id == 0 {
 		return errors.New("Cannot update a post without an ID.")
 	}
-	_, err := d.update_post_stmt.Exec(post.Title, post.Text, post.ImageFile, post.Author, post.PostTime, post.Id)
+	_, err := d.update_post_stmt.Exec(post.Title, post.Text, post.ImageFile, post.Author, post.PostTime.Unix(), post.Id)
 	return err
 }
 
