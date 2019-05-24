@@ -222,14 +222,12 @@ func (c *PostController) PostUpdate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	fmt.Printf("Image file before update was: %s", post.ImageFile)
 	r.ParseMultipartForm(10 << 20) //Limit to 10 MB file size
 	f, fh, err := r.FormFile("image")
 	var fBytes []byte
 	var imageFilename string
 	if err == nil {
 		defer f.Close()
-		log.Printf("Saving a new file: %s with size %+v and type %+v", fh.Filename, fh.Size, fh.Header)
 		isAllowedType := validateImageFile(fh)
 		if isAllowedType == false {
 			http.Error(w, "Uploaded image is not an allowed file type.", http.StatusUnprocessableEntity)
@@ -246,7 +244,6 @@ func (c *PostController) PostUpdate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		post.ImageFile = imageFilename
-		fmt.Printf("Image file after update is: %s", post.ImageFile)
 	}
 	if len(r.FormValue("title")) > 0 {
 		post.Title = r.FormValue("title")
