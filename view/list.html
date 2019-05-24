@@ -57,7 +57,7 @@
                 <div class="post">
                     <div class="header">
                         <a class="title" v-bind:href="'..posts/' + post.id">{{ post.title }}</a>
-                        <span class="author">{{ post.author }}</span>
+                        <span class="author" v-if="post.author && post.author != 'null'">{{ post.author }}</span>
                     </div>
                     <img class="photo" v-bind:src="post.imageFile | absoluteImgURL" />
                     <div class="text">{{ post.text }}</div>
