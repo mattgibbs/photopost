@@ -22,7 +22,10 @@ func NewRouter() *mux.Router {
 			"PostShow", "GET", "/posts/{postid}", postController.PostShow,
 		},
 		Route{
-			"PostShow", "POST", "/posts/{postid}/edit", postController.PostUpdate,
+			"PostUpdate", "POST", "/posts/{postid}", postController.PostUpdate,
+		},
+		Route{
+			"PostDelete", "DELETE", "/posts/{postid}", postController.PostDelete,
 		},
 		Route{
 			"PostCreate", "POST", "/posts", postController.PostCreate,

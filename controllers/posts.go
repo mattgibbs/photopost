@@ -290,3 +290,24 @@ func (c *PostController) PostUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (c *PostController) PostDelete(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	postid, err := strconv.Atoi(vars["postid"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	post, err := c.datastore.FindPost(postid)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+	err = c.datastore.DeletePost(post)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusNoContent)
+}
