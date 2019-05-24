@@ -93,7 +93,14 @@ func (c *PostController) PostRandom(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		panic(err)
+		return
 	}
+
+	if ids == nil || len(ids) == 0 {
+		http.Error(w, "Database has no photos.", http.StatusInternalServerError)
+		return
+	}
+
 	id := int(ids[rand.Intn(len(ids))])
 	c.showPostWithID(w, r, id)
 }
