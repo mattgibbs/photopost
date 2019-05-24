@@ -149,7 +149,7 @@
                 const forms = Array.from(Array(fileList.length).keys())
                   .map(x => {
                     const formData = new FormData();
-                    formData.append("title", fileList[x].name);
+                    formData.append("title", fileList[x].name.replace(/\..+$/, ''));
                     formData.append("text", "");
                     formData.append("author", nameForUpload);
                     formData.append("image", fileList[x], fileList[x].name);
