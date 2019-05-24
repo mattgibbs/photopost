@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/mattgibbs/photopost/config"
 	"github.com/mattgibbs/photopost/model"
 	"io"
 	"io/ioutil"
@@ -20,12 +21,14 @@ import (
 var allowed_file_types = [...]string{"image/jpeg", "image/gif", "image/png"}
 
 type PostController struct {
-	datastore model.Datastore
+	datastore     model.Datastore
+	configuration *config.Config
 }
 
-func NewPostController(ds model.Datastore) *PostController {
+func NewPostController(ds model.Datastore, configuration *config.Config) *PostController {
 	c := new(PostController)
 	c.datastore = ds
+	c.configuration = configuration
 	rand.Seed(time.Now().Unix())
 	return c
 }
@@ -147,7 +150,7 @@ func (c *PostController) PostCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	imageFile := filepath.Join("uploads", fmt.Sprintf("%x%s", hashBytes, fileExtensions[0]))
+	imageFile := filepath.Join(c.configuration.UploadsPath, fmt.Sprintf("%x%s", hashBytes, fileExtensions[0]))
 	var post model.Post
 	post.Title = r.FormValue("title")
 	post.Text = r.FormValue("text")
