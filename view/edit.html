@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>Photos</title>
+  <style>
+      img.photo {
+          max-width: 400px;
+      }
+      ol.posts {
+          list-style: none;
+          text-align: center;
+      }
+      ol.posts li {
+          font: 1em sans-serif;
+          font-weight: lighter;
+          color: rgb(100, 100, 100);
+          width: 450px;
+          /*height: 600px;*/
+          margin: 0 auto;
+          margin-bottom: 1.5em;
+          display: block;
+          box-shadow: 0px 6px 18px -2px rgba(0,0,0,0.39);
+          padding: 0.6em;
+      }
+      ol.posts li img.photo {
+          margin: 0.5em;
+      }
+      ol.posts li div.header a.title {
+          color: rgb(100, 100, 100);
+          float: left;
+          text-decoration: none;
+      }
+      
+      ol.posts li div.header a:hover {
+          text-decoration: underline;
+      }
+      
+      ol.posts li div.text {
+        font-size: 0.8em;
+      }
+      
+      ol.posts li div.header span.author {
+          float: right;
+      }
+      
+      .list-enter-active, .list-leave-active {
+        transition: all 0.2s;
+      }
+      
+      .list-enter, .list-leave-to {
+        opacity: 0;
+        transform: scale(0.7);
+      }
+      
+      button.delete {
+        background-color: #F57B56;
+        border-radius:4px;
+        border:1px solid #942911;
+      }
+  </style>
+  
+</head>
+<body>
+    <script src="vue.js"></script>
+    <div id="app">
+        <transition-group name="list" tag="ol" class="posts" v-if="posts.length > 0">
+            <li class="post list-item" v-for="post in posts" v-bind:key="post.id">
+                <div class="post">
+                    <div class="header">
+                        <span class="title">
+                          <button class="delete" v-on:click="deletePost(post)">Delete</button>
+                          <label for="title">Title:</label><input type="text" v-model="post.title" id="name">
+                        </span>
+                        <span class="author">
+                          <label for="author">Author:</label><input type="text" v-model="post.author" id="name">
+                        </span>
+                    </div>
+                    <img class="photo" v-bind:src="post.imageFile | absoluteImgURL" />
+                    <div class="text">
+                      <label for="text">Text:</label><br><textarea v-model="post.text" id="text"></textarea>
+                    </div>
+                    <button v-on:click="rotateImage(post, -1)">Rotate Image Counter-Clockwise</button>
+                    <button v-on:click="rotateImage(post, 1)">Rotate Image Clockwise</button>
+                    <button v-on:click="savePost(post)">Save Changes</button>
+                </div>
+            </li>
+        </transition-group>
+        <div v-else>
+          There aren't any photos yet.
+        </div>
+    </div>
+    <script>
+        function makeJSONRequest(url, method, body) {
+            var request = new XMLHttpRequest();
+            return new Promise(function(resolve, reject) {
+                request.onreadystatechange=function() {
+                    if (request.readyState !== 4) return;
+                    if (request.status >= 200 && request.status < 300) {
+                        resolve(request);
+                    } else {
+                        reject({
+                            status: request.status,
+                            statusText: request.statusText
+                        });
+                    }
+                };
+                request.open(method || 'GET', url, true);
+                request.responseType = 'json';
+                request.send(body);
+            });
+        }
+        
+        var app = new Vue({
+            el: '#app',
+            data() {
+                return {
+                    posts: []
+                }
+            },
+            filters: {
+                absoluteImgURL(rel_url) {
+                    return "../" + rel_url;
+                }
+            },
+            methods: {
+              savePost: function(post) {
+                const formData = new FormData();
+                formData.append("title", post.title);
+                formData.append("text", post.text);
+                formData.append("author", post.author);
+                //formData.append("image", fileList[x], fileList[x].name);
+                makeJSONRequest("../posts/"+post.id, "POST", formData)
+                  .then(resp => {
+                    console.log("Success!", resp.response);
+                  })
+                  .catch(error => {
+                    console.log("Error", error);
+                  });
+              },
+              deletePost: function(post) {
+                if (window.confirm("Do you really want to delete this post?")) { 
+                  makeJSONRequest("../posts/"+post.id, "DELETE")
+                    .then(resp => {
+                      this.posts = this.posts.filter(p => p.id != post.id)
+                    })
+                    .catch(error => {
+                      console.log("Error", error);
+                    });
+                }
+              },
+              rotateImage: function(post, dir) {
+                post.imageFile = "";
+                makeJSONRequest("../posts/"+post.id+"/rotate?direction="+dir, "POST")
+                  .then(resp => {
+                    post.imageFile = resp.response.imageFile + "?" + Date.now();
+                  })
+                  .catch(error => {
+                    console.log("Error", error);
+                  });
+              }
+            },
+            mounted(){
+                makeJSONRequest('../posts')
+                    .then(function(posts) {
+                        this.posts = posts.response;
+                    }.bind(this))
+                    .catch(function(error) {
+                        console.log("Error", error);
+                    }.bind(this));
+                }
+            });
+        
+        
+    </script>
+</body>
+</html>
+
+
